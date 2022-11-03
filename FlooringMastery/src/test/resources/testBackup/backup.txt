@@ -1,0 +1,2 @@
+OrderNumber::CustomerName::State::TaxRate::ProductType::Area::CostPerSquareFoot::LaborCostPerSquareFoot::MaterialCost::LaborCost::Tax::Total::OrderDate
+1::testName::testState::10.00::testType::100.00::10.0::5.0::1000.00::500.00::150.00::1650.00::12-12-2012
