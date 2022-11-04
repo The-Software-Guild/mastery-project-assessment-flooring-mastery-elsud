@@ -34,6 +34,7 @@ class FlooringMasteryOrderDaoFileImplTest {
     private final String ORDER_FILE = "src/test/resources/testOrders";
     private final String BACKUP_HEADER = HEADER + "::OrderDate";
     private final String BACKUP_FILE = "src/test/resources/testBackup/backup.txt";
+    private final String NUMBER_FILE = "src/test/resources/number.txt";
     private final String DELIMITER = "::";
 
     @BeforeEach
@@ -52,7 +53,7 @@ class FlooringMasteryOrderDaoFileImplTest {
                 testOrder.getLaborCostPerSquareFoot() + DELIMITER + testOrder.getMaterialCost()
                 + DELIMITER + testOrder.getLaborCost() + DELIMITER + testOrder.getTax()
                 + DELIMITER + testOrder.getTotal();
-        testOrderDao = new FlooringMasteryOrderDaoFileImpl(ORDER_FILE, BACKUP_FILE);
+        testOrderDao = new FlooringMasteryOrderDaoFileImpl(ORDER_FILE, BACKUP_FILE, NUMBER_FILE);
     }
 
     @AfterEach
@@ -251,5 +252,39 @@ class FlooringMasteryOrderDaoFileImplTest {
         String expectedLine = orderAsString + DELIMITER + testOrder.getDate().format(dateFormatter);
         assertEquals(expectedLine, in.nextLine());
         assertFalse(in.hasNextLine());
+    }
+
+    @Test
+    void testLoadOrderNumberReturnsNumberFromFile() {
+        assertEquals(10, testOrderDao.loadOrderNumber());
+        testOrderDao = new FlooringMasteryOrderDaoFileImpl(ORDER_FILE, BACKUP_FILE, NUMBER_FILE);
+    }
+
+    @Test
+    void testLoadOrderNumberReturns1WhenFileDoesNotExist() {
+        FlooringMasteryOrderDao anotherOrderDao = new FlooringMasteryOrderDaoFileImpl(
+                ORDER_FILE, BACKUP_FILE, "notExisting"
+        );
+        assertEquals(1, anotherOrderDao.loadOrderNumber());
+    }
+
+    @Test
+    void testUploadOrderNumberWritesNumberToFile() {
+       String fileName = "src/test/resources/testOrders/number.txt";
+       int number = 12;
+       FlooringMasteryOrderDao anotherOrderDao = new FlooringMasteryOrderDaoFileImpl(
+                ORDER_FILE, BACKUP_FILE, fileName
+        );
+       try {
+           anotherOrderDao.uploadOrderNumber(number);
+       } catch (FlooringMasteryPersistenceException e) {
+           fail("Unexpected fail during writing to file");
+       }
+       try {
+           Scanner in = new Scanner(new BufferedReader(new FileReader(fileName)));
+           assertEquals(number, in.nextInt());
+       } catch (FileNotFoundException e) {
+           fail("File should be created");
+       }
     }
 }

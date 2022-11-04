@@ -36,4 +36,17 @@ public interface FlooringMasteryOrderDao {
      * @throws FlooringMasteryPersistenceException when export fails
      */
     public void exportOrders() throws FlooringMasteryPersistenceException;
+
+    /**
+     * Load orderNumber from persistent storage
+     * @return integer with loaded number
+     */
+    public int loadOrderNumber();
+
+    /**
+     * Upload orderNumber to persistent storage
+     * @param orderNumber new orderNumber to upload
+     * * @throws FlooringMasteryPersistenceException when uploading fails
+     */
+    public void uploadOrderNumber(int orderNumber) throws FlooringMasteryPersistenceException;
 }

@@ -10,7 +10,6 @@ import flooring.model.Tax;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -18,10 +17,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Scanner;
 
 @Component
-public class FlooringMasterServiceLayerFileImpl implements FlooringMasteryServiceLayer {
+public class FlooringMasterServiceLayerImpl implements FlooringMasteryServiceLayer {
 
     @Autowired
     private FlooringMasteryTaxDao taxDao;
@@ -31,10 +29,6 @@ public class FlooringMasterServiceLayerFileImpl implements FlooringMasteryServic
     private FlooringMasteryOrderDao orderDao;
 
     private int lastOrderNumber;
-
-    // file to store lastOrderNumber
-    private final String ORDER_NUMBER_FILE = "Data/OrderNumber.txt";
-
     private final int SCALE = 2;
     private final RoundingMode MODE = RoundingMode.HALF_UP;
 
@@ -48,7 +42,7 @@ public class FlooringMasterServiceLayerFileImpl implements FlooringMasteryServic
     public void loadData() throws FlooringMasteryPersistenceException {
         taxDao.loadTaxes();
         productDao.loadProducts();
-        lastOrderNumber = loadLastOrderNumber();
+        loadLastOrderNumber();
     }
 
     /**
@@ -224,6 +218,14 @@ public class FlooringMasterServiceLayerFileImpl implements FlooringMasteryServic
         return orderMap;
     }
 
+    /**
+     * Modifies order's attributes without persistent saving
+     * @param order Order object to modify
+     * @param customerName String with new customerName
+     * @param tax Tax object to update order with
+     * @param product Product object to update order with
+     * @param area BigDecimal with new area
+     */
     @Override
     public void updateOrder(Order order, String customerName, Tax tax, Product product, BigDecimal area) {
         order.setCustomerName(customerName);
@@ -235,17 +237,37 @@ public class FlooringMasterServiceLayerFileImpl implements FlooringMasteryServic
         order.setLaborCostPerSquareFoot(product.getLaborCostPerSquareFoot());
     }
 
+    /**
+     * Exports all existing orders from one persistent storage to another
+     * @throws FlooringMasteryPersistenceException when export fails
+     */
     @Override
     public void exportOrders() throws FlooringMasteryPersistenceException {
         orderDao.exportOrders();
     }
 
+    /**
+     * Deletes order for given date and orderNumber.
+     * Update orders for given date accordingly
+     * @param orderMap Map with orderNumbers as key and Order objects for given date as values
+     * @param number int orderNumber to delete order
+     * @param date LocalDate to delete order
+     * @throws FlooringMasteryPersistenceException if updating orders without deleted one fails
+     */
     @Override
     public void deleteOrder(Map<Integer, Order> orderMap, int number, LocalDate date) throws FlooringMasteryPersistenceException {
         orderMap.remove(number);
         orderDao.uploadModifiedOrders(orderMap.values(), date);
     }
 
+    /**
+     * Persistently edits order for given date and orderNumber with given Order object.
+     * @param orderMap Map with orderNumbers as keys and Order objects as value
+     * @param number int orderNumber to edit
+     * @param order edited Order object to save
+     * @param date LocalDate for edited object
+     * @throws FlooringMasteryPersistenceException if saving edited order fails
+     */
     @Override
     public void editOrder(Map<Integer, Order> orderMap, int number, Order order, LocalDate date) throws FlooringMasteryPersistenceException {
         orderMap.put(number, order);
@@ -261,34 +283,18 @@ public class FlooringMasterServiceLayerFileImpl implements FlooringMasteryServic
     }
 
     /**
-     * Loads lastOrderNumber from persistent file.
-     * If file doesn't exist, sets value of lastOrderNumber to 1
-     * @return lastOrderNumber
+     * Set lastOrderNumber to loaded
      */
-    private int loadLastOrderNumber() {
-        int lastNumber = 1;
-        Scanner in;
-        try {
-            in = new Scanner(new BufferedReader(new FileReader(ORDER_NUMBER_FILE)));
-            return in.nextInt();
-        } catch (Exception e) {
-            return lastNumber;
-        }
+    private void loadLastOrderNumber() {
+        lastOrderNumber = orderDao.loadOrderNumber();
     }
 
     /**
-     * Upload lastOrderNumber to persistent file
+     * Upload lastOrderNumber to persistent storage through orderDao
      * @throws FlooringMasteryPersistenceException if uploading fails
      */
     public void uploadLastOrderNumber() throws FlooringMasteryPersistenceException {
-        PrintWriter out;
-        try {
-            out = new PrintWriter(new FileWriter(ORDER_NUMBER_FILE));
-            out.println(lastOrderNumber);
-            out.flush();
-            out.close();
-        } catch (IOException e) {
-            throw new FlooringMasteryPersistenceException("Cannot upload data");
-        }
+        orderDao.uploadOrderNumber(lastOrderNumber);
     }
+
 }

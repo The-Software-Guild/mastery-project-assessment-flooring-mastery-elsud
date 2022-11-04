@@ -17,7 +17,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FlooringMasterServiceLayerFileImplTest {
+class FlooringMasterServiceLayerImplTest {
 
     private FlooringMasteryServiceLayer testService;
 
@@ -27,7 +27,7 @@ class FlooringMasterServiceLayerFileImplTest {
     @BeforeEach
     void setUp() {
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
-        applicationContext.scan(FlooringMasterServiceLayerFileImplTest.class.getPackageName());
+        applicationContext.scan(FlooringMasterServiceLayerImplTest.class.getPackageName());
         applicationContext.refresh();
         testService = applicationContext.getBean("testService", FlooringMasteryServiceLayer.class);
         try {

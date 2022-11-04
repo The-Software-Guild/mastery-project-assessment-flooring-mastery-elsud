@@ -78,6 +78,3 @@ public class FlooringMasteryProductDaoFileImpl implements FlooringMasteryProduct
         return productMap.values();
     }
 }
-
-
-

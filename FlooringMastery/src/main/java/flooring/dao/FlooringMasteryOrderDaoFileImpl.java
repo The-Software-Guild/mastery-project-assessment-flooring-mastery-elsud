@@ -20,6 +20,9 @@ public class FlooringMasteryOrderDaoFileImpl implements FlooringMasteryOrderDao 
     // Path for orders' export
     private final String ORDER_BACKUP_PATH;
 
+    // file to store lastOrderNumber
+    private final String ORDER_NUMBER_FILE;
+
     // Formatter for persistent storage
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMddyyyy");
 
@@ -36,13 +39,14 @@ public class FlooringMasteryOrderDaoFileImpl implements FlooringMasteryOrderDao 
     public FlooringMasteryOrderDaoFileImpl() {
         ORDER_FILE_PATH = "Orders";
         ORDER_BACKUP_PATH = "Backup/DataExport.txt";
+        ORDER_NUMBER_FILE = "Data/OrderNumber.txt";
     }
 
-    public FlooringMasteryOrderDaoFileImpl(String orderFile, String backupFile) {
+    public FlooringMasteryOrderDaoFileImpl(String orderFile, String backupFile, String numberFile) {
         ORDER_FILE_PATH = orderFile;
         ORDER_BACKUP_PATH = backupFile;
+        ORDER_NUMBER_FILE = numberFile;
     }
-
 
     /**
      * Checks if file for this date exists, if not - creates file and writes HEADER.
@@ -110,7 +114,6 @@ public class FlooringMasteryOrderDaoFileImpl implements FlooringMasteryOrderDao 
         }
         return orderMap;
     }
-
 
     /**
      * Iterates through Collection of Order objects and writes them
@@ -185,6 +188,37 @@ public class FlooringMasteryOrderDaoFileImpl implements FlooringMasteryOrderDao 
     }
 
     /**
+     * Load orderNumber from file or return 1
+     * @return saved orderNumber or 1
+     */
+    @Override
+    public int loadOrderNumber() {
+        Scanner in;
+        try {
+            in = new Scanner(new BufferedReader(new FileReader(ORDER_NUMBER_FILE)));
+            return in.nextInt();
+        } catch (Exception e) {
+            return 1;
+        }
+    }
+
+    /**
+     * Upload lastOrderNumber to persistent file
+     * @throws FlooringMasteryPersistenceException if uploading fails
+     */
+    @Override
+    public void uploadOrderNumber(int orderNumber) throws FlooringMasteryPersistenceException {
+        PrintWriter out;
+        try {
+            out = new PrintWriter(new FileWriter(ORDER_NUMBER_FILE));
+            out.println(orderNumber);
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            throw new FlooringMasteryPersistenceException("Cannot upload data");
+        }
+    }
+    /**
      * Converts Order object to String
      * @param order Order object that should be converted to String
      * @return String with order information
@@ -217,4 +251,5 @@ public class FlooringMasteryOrderDaoFileImpl implements FlooringMasteryOrderDao 
         order.setLaborCostPerSquareFoot(new BigDecimal(orderArray[7]));
         return order;
     }
+
 }

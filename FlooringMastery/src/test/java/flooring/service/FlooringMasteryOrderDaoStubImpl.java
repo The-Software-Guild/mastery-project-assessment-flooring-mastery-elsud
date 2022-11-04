@@ -45,4 +45,14 @@ public class FlooringMasteryOrderDaoStubImpl implements FlooringMasteryOrderDao 
     public void exportOrders() throws FlooringMasteryPersistenceException {
         // do nothing
     }
+
+    @Override
+    public int loadOrderNumber() {
+        return 10;
+    }
+
+    @Override
+    public void uploadOrderNumber(int orderNumber) throws FlooringMasteryPersistenceException {
+        // do nothing
+    }
 }
